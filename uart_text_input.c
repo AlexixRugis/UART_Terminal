@@ -1,6 +1,6 @@
 #include "uart_text_input.h"
 #include <gui/elements.h>
-#include "uart_terminal_icons.h"
+#include "uart_terminal_arx_icons.h"
 #include "uart_terminal_app_i.h"
 #include <furi.h>
 
@@ -39,7 +39,7 @@ static const uint8_t keyboard_row_count = 4;
 
 #define mode_AT "Send AT command to UART"
 
-#define ENTER_KEY '\r'
+#define ENTER_KEY     '\r'
 #define BACKSPACE_KEY '\b'
 
 static const UART_TextInputKey keyboard_keys_row_1[] = {
@@ -418,7 +418,7 @@ static void uart_text_input_handle_ok(
     }
 
     if(shift) {
-        if (0 == strcmp(model->header, mode_AT)){
+        if(0 == strcmp(model->header, mode_AT)) {
             selected = char_to_lowercase(selected);
         } else {
             selected = char_to_uppercase(selected);

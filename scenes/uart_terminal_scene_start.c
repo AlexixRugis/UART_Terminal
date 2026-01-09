@@ -3,12 +3,20 @@
 // For each command, define whether additional arguments are needed
 // (enabling text input to fill them out), and whether the console
 // text box should focus at the start of the output or the end
-typedef enum { NO_ARGS = 0, INPUT_ARGS, TOGGLE_ARGS } InputArgs;
+typedef enum {
+    NO_ARGS = 0,
+    INPUT_ARGS,
+    TOGGLE_ARGS
+} InputArgs;
 
-typedef enum { FOCUS_CONSOLE_END = 0, FOCUS_CONSOLE_START, FOCUS_CONSOLE_TOGGLE } FocusConsole;
+typedef enum {
+    FOCUS_CONSOLE_END = 0,
+    FOCUS_CONSOLE_START,
+    FOCUS_CONSOLE_TOGGLE
+} FocusConsole;
 
 #define SHOW_STOPSCAN_TIP (true)
-#define NO_TIP (false)
+#define NO_TIP            (false)
 
 #define MAX_OPTIONS (25)
 typedef struct {
@@ -24,12 +32,17 @@ typedef struct {
 // NUM_MENU_ITEMS defined in uart_terminal_app_i.h - if you add an entry here, increment it!
 const UART_TerminalItem items[NUM_MENU_ITEMS] = {
     {"Console",
-     {"115200", "75", "110", "150", "300", "600", "1200", "1800", "2400", "4800", "7200", "9600", "14400", "19200", "31250", "38400", "56000", "57600", "76800", "128000", "230400", "250000", "256000", "460800", "921600"},
+     {"115200", "75",     "110",    "150",    "300",    "600",    "1200",  "1800",  "2400",
+      "4800",   "7200",   "9600",   "14400",  "19200",  "31250",  "38400", "56000", "57600",
+      "76800",  "128000", "230400", "250000", "256000", "460800", "921600"},
      25,
-     {"115200", "75", "110", "150", "300", "600", "1200", "1800", "2400", "4800", "7200", "9600", "14400", "19200", "31250", "38400", "56000", "57600", "76800", "128000", "230400", "250000", "256000", "460800", "921600"},
+     {"115200", "75",     "110",    "150",    "300",    "600",    "1200",  "1800",  "2400",
+      "4800",   "7200",   "9600",   "14400",  "19200",  "31250",  "38400", "56000", "57600",
+      "76800",  "128000", "230400", "250000", "256000", "460800", "921600"},
      NO_ARGS,
      FOCUS_CONSOLE_END,
      NO_TIP},
+    {"Log to file", {"off", "on"}, 2, {"off", "on"}, NO_ARGS, FOCUS_CONSOLE_END, NO_TIP},
     {"Send command", {""}, 1, {""}, INPUT_ARGS, FOCUS_CONSOLE_END, NO_TIP},
     {"Send AT command", {""}, 1, {"AT"}, INPUT_ARGS, FOCUS_CONSOLE_END, NO_TIP},
     {"Fast cmd",
@@ -52,9 +65,10 @@ static void uart_terminal_scene_start_var_list_enter_callback(void* context, uin
     const int selected_option_index = app->selected_option_index[index];
     furi_assert(selected_option_index < item->num_options_menu);
     app->selected_tx_string = item->actual_commands[selected_option_index];
-    app->is_command = (1 <= index);
+    app->is_command = (2 <= index);
     app->is_custom_tx_string = false;
     app->selected_menu_index = index;
+    app->log_to_file = selected_option_index > 0;
     app->focus_console_start = (item->focus_console == FOCUS_CONSOLE_TOGGLE) ?
                                    (selected_option_index == 0) :
                                    item->focus_console;

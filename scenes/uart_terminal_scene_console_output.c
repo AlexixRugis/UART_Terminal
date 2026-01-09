@@ -123,7 +123,8 @@ void uart_terminal_scene_console_output_on_enter(void* context) {
         app->BAUDRATE = 115200;
         app->uart = uart_terminal_uart_init(app);
     }
-    if(0 == strncmp("128000", app->selected_tx_string, strlen("128000")) && app->BAUDRATE != 128000) {
+    if(0 == strncmp("128000", app->selected_tx_string, strlen("128000")) &&
+       app->BAUDRATE != 128000) {
         uart_terminal_uart_free(app->uart);
         app->BAUDRATE = 128000;
         app->uart = uart_terminal_uart_init(app);
@@ -134,12 +135,14 @@ void uart_terminal_scene_console_output_on_enter(void* context) {
         app->BAUDRATE = 230400;
         app->uart = uart_terminal_uart_init(app);
     }
-    if(0 == strncmp("250000", app->selected_tx_string, strlen("250000")) && app->BAUDRATE != 250000) {
+    if(0 == strncmp("250000", app->selected_tx_string, strlen("250000")) &&
+       app->BAUDRATE != 250000) {
         uart_terminal_uart_free(app->uart);
         app->BAUDRATE = 250000;
         app->uart = uart_terminal_uart_init(app);
     }
-    if(0 == strncmp("256000", app->selected_tx_string, strlen("256000")) && app->BAUDRATE != 256000) {
+    if(0 == strncmp("256000", app->selected_tx_string, strlen("256000")) &&
+       app->BAUDRATE != 256000) {
         uart_terminal_uart_free(app->uart);
         app->BAUDRATE = 256000;
         app->uart = uart_terminal_uart_init(app);
@@ -164,7 +167,7 @@ void uart_terminal_scene_console_output_on_enter(void* context) {
 
         if(0 == strncmp("help", app->selected_tx_string, strlen("help"))) {
             const char* help_msg =
-                "UART terminal for Flipper\n\nI'm in github: cool4uma\n\nThis app is a modified\nWiFi Marauder companion,\nThanks 0xchocolate(github)\nfor great code and app.\n\n";
+                "UART terminal for Flipper\nby AlexixRugis\nBased on: cool4uma\n";
             furi_string_cat_str(app->text_box_store, help_msg);
             app->text_box_store_strlen += strlen(help_msg);
         }
@@ -188,14 +191,14 @@ void uart_terminal_scene_console_output_on_enter(void* context) {
 
     // Send command with CR+LF or newline '\n'
     if(app->is_command && app->selected_tx_string) {
-        if(app->TERMINAL_MODE == 1){
+        if(app->TERMINAL_MODE == 1) {
             uart_terminal_uart_tx(
-                (uint8_t*)(app->selected_tx_string), strlen(app->selected_tx_string));
-            uart_terminal_uart_tx((uint8_t*)("\r\n"), 2);
+                app->uart, (uint8_t*)(app->selected_tx_string), strlen(app->selected_tx_string));
+            uart_terminal_uart_tx(app->uart, (uint8_t*)("\r\n"), 2);
         } else {
             uart_terminal_uart_tx(
-                (uint8_t*)(app->selected_tx_string), strlen(app->selected_tx_string));
-            uart_terminal_uart_tx((uint8_t*)("\n"), 1);
+                app->uart, (uint8_t*)(app->selected_tx_string), strlen(app->selected_tx_string));
+            uart_terminal_uart_tx(app->uart, (uint8_t*)("\n"), 1);
         }
     }
 }
