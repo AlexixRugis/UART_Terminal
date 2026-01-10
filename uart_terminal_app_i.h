@@ -12,7 +12,7 @@
 #include <gui/modules/variable_item_list.h>
 #include "uart_text_input.h"
 
-#define NUM_MENU_ITEMS (6)
+#define NUM_MENU_ITEMS (7)
 
 #define UART_TERMINAL_TEXT_BOX_STORE_SIZE   (4096)
 #define UART_TERMINAL_TEXT_INPUT_STORE_SIZE (512)
@@ -39,6 +39,8 @@ struct UART_TerminalApp {
     bool is_custom_tx_string;
     bool focus_console_start;
     bool show_stopscan_tip;
+    bool show_time;
+    bool console_at_line_start;
     bool log_to_file;
     int BAUDRATE;
     int TERMINAL_MODE; //1=AT mode, 0=other mode

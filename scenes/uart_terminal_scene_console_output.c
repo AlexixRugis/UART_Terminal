@@ -11,9 +11,36 @@ void uart_terminal_console_output_handle_rx_data_cb(uint8_t* buf, size_t len, vo
         app->text_box_store_strlen = furi_string_size(app->text_box_store) + len;
     }
 
-    // Null-terminate buf and append to text box store
-    buf[len] = '\0';
-    furi_string_cat_printf(app->text_box_store, "%s", buf);
+    for(size_t i = 0; i < len; i++) {
+        char ch = buf[i];
+
+        if(app->console_at_line_start && app->show_time) {
+            // If text box store gets too big, then truncate it
+            app->text_box_store_strlen += 11;
+            if(app->text_box_store_strlen >= UART_TERMINAL_TEXT_BOX_STORE_SIZE - 1) {
+                furi_string_right(app->text_box_store, app->text_box_store_strlen / 2);
+                app->text_box_store_strlen = furi_string_size(app->text_box_store) + 11;
+            }
+
+            DateTime datetime;
+            furi_hal_rtc_get_datetime(&datetime);
+
+            furi_string_cat_printf(
+                app->text_box_store,
+                "%02u:%02u:%02u - ",
+                datetime.hour,
+                datetime.minute,
+                datetime.second);
+
+            app->console_at_line_start = false;
+        }
+
+        furi_string_push_back(app->text_box_store, ch);
+
+        if(ch == '\n') {
+            app->console_at_line_start = true;
+        }
+    }
 
     view_dispatcher_send_custom_event(
         app->view_dispatcher, UART_TerminalEventRefreshConsoleOutput);
@@ -186,6 +213,8 @@ void uart_terminal_scene_console_output_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, UART_TerminalAppViewConsoleOutput);
 
     // Register callback to receive data
+    app->console_at_line_start = true;
+
     uart_terminal_uart_set_handle_rx_data_cb(
         app->uart, uart_terminal_console_output_handle_rx_data_cb); // setup callback for rx thread
 
