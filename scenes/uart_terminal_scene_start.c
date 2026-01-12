@@ -31,7 +31,9 @@ typedef struct {
 
 // NUM_MENU_ITEMS defined in uart_terminal_app_i.h - if you add an entry here, increment it!
 const UART_TerminalItem items[NUM_MENU_ITEMS] = {
-    {"Console",
+    {"Open port", {""}, 1, {"open"}, NO_ARGS, FOCUS_CONSOLE_END, NO_TIP},
+    {"RX/TX", {"14,13", "16,15"}, 2, {"14,13", "16,15"}, NO_ARGS, FOCUS_CONSOLE_END, NO_TIP},
+    {"Baudrate",
      {"115200", "75",     "110",    "150",    "300",    "600",    "1200",  "1800",  "2400",
       "4800",   "7200",   "9600",   "14400",  "19200",  "31250",  "38400", "56000", "57600",
       "76800",  "128000", "230400", "250000", "256000", "460800", "921600"},

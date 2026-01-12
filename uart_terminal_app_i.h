@@ -5,6 +5,8 @@
 #include "uart_terminal_custom_event.h"
 #include "uart_terminal_uart.h"
 
+#include "uart_file_logger.h"
+
 #include <gui/gui.h>
 #include <gui/view_dispatcher.h>
 #include <gui/scene_manager.h>
@@ -12,7 +14,7 @@
 #include <gui/modules/variable_item_list.h>
 #include "uart_text_input.h"
 
-#define NUM_MENU_ITEMS (7)
+#define NUM_MENU_ITEMS (9)
 
 #define UART_TERMINAL_TEXT_BOX_STORE_SIZE   (4096)
 #define UART_TERMINAL_TEXT_INPUT_STORE_SIZE (512)
@@ -32,6 +34,8 @@ struct UART_TerminalApp {
     VariableItemList* var_item_list;
 
     UART_TerminalUart* uart;
+    UART_FileLogger* file_logger;
+
     int selected_menu_index;
     int selected_option_index[NUM_MENU_ITEMS];
     const char* selected_tx_string;
