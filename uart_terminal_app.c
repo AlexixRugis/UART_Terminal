@@ -188,6 +188,12 @@ void uart_terminal_app_free(UART_TerminalApp* app) {
 
     uart_terminal_uart_free(app->uart);
 
+    if(app->file_logger) {
+        uart_file_logger_flush_pending(app->file_logger);
+        uart_file_logger_free(app->file_logger);
+        app->file_logger = NULL;
+    }
+
     // Close records
     furi_record_close(RECORD_GUI);
 

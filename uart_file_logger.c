@@ -7,8 +7,9 @@
 
 struct UART_FileLogger {
     uint8_t buf[FILE_BUF_SIZE];
-    size_t write_position;
-    size_t flush_position;
+    volatile size_t write_position;
+    volatile size_t flush_position;
+    volatile bool half_locked[2];
 
     void (*on_filled)(UART_FileLogger*, UART_FileLoggerSyncPart);
 
@@ -22,6 +23,8 @@ UART_FileLogger* uart_file_logger_create(void) {
 
     logger->write_position = 0;
     logger->flush_position = 0;
+    logger->half_locked[0] = false;
+    logger->half_locked[1] = false;
     logger->on_filled = NULL;
     logger->context = NULL;
 
@@ -61,19 +64,29 @@ void uart_file_logger_set_on_filled_callback(
 void uart_file_logger_push(UART_FileLogger* logger, const void* buf, size_t sz) {
     const uint8_t* p = buf;
     while(sz--) {
+        int half = ((logger->write_position % FILE_BUF_SIZE) < FILE_BUF_SIZE / 2) ? 0 : 1;
+        if(logger->half_locked[half]) {
+            break;
+        }
+
+        if(logger->write_position == FILE_BUF_SIZE) {
+            logger->write_position = 0;
+        }
+
         logger->buf[logger->write_position] = *p;
         logger->write_position++;
         p++;
 
         if(logger->write_position == FILE_BUF_SIZE / 2) {
+            logger->half_locked[0] = true;
             if(logger->on_filled != NULL) {
                 logger->on_filled(logger, BUF_PART_FIRST_HALF);
             }
         } else if(logger->write_position == FILE_BUF_SIZE) {
+            logger->half_locked[1] = true;
             if(logger->on_filled != NULL) {
                 logger->on_filled(logger, BUF_PART_SECOND_HALF);
             }
-            logger->write_position = 0;
         }
     }
 }
@@ -96,25 +109,30 @@ void uart_file_logger_flush(UART_FileLogger* logger, UART_FileLoggerSyncPart par
         FURI_LOG_E(TAG, "Failed to write to file");
     } else {
         if(part == BUF_PART_FIRST_HALF) {
+            logger->half_locked[0] = false;
             logger->flush_position = FILE_BUF_SIZE / 2;
         } else if(part == BUF_PART_SECOND_HALF) {
+            logger->half_locked[1] = false;
             logger->flush_position = 0;
         }
     }
 }
 
 void uart_file_logger_flush_pending(UART_FileLogger* logger) {
-    furi_assert(logger->flush_position <= logger->write_position);
-
-    void* buf = (void*)&logger->buf[logger->flush_position];
-    size_t sz = logger->write_position - logger->flush_position;
-
-    if(sz > 0) {
-        if(!storage_file_write(logger->file, buf, sz)) {
-            FURI_LOG_E(TAG, "Failed to write to file");
-        } else {
-            logger->flush_position = 0;
-            logger->write_position = 0;
-        }
+    size_t cur_write_pos = logger->write_position;
+    if(logger->flush_position == 0 || cur_write_pos > logger->flush_position) {
+        storage_file_write(
+            logger->file,
+            &logger->buf[logger->flush_position],
+            cur_write_pos - logger->flush_position);
+    } else {
+        storage_file_write(
+            logger->file, &logger->buf[FILE_BUF_SIZE / 2], FILE_BUF_SIZE - FILE_BUF_SIZE / 2);
+        storage_file_write(logger->file, &logger->buf[0], logger->write_position);
     }
+
+    logger->write_position = 0;
+    logger->flush_position = 0;
+    logger->half_locked[0] = false;
+    logger->half_locked[1] = false;
 }
