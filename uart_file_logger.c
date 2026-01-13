@@ -14,6 +14,7 @@ struct UART_FileLogger {
 
     Storage* storage;
     File* file;
+    void* context;
 };
 
 UART_FileLogger* uart_file_logger_create(void) {
@@ -22,6 +23,7 @@ UART_FileLogger* uart_file_logger_create(void) {
     logger->write_position = 0;
     logger->flush_position = 0;
     logger->on_filled = NULL;
+    logger->context = NULL;
 
     logger->storage = furi_record_open(RECORD_STORAGE);
     logger->file = storage_file_alloc(logger->storage);
@@ -40,6 +42,14 @@ void uart_file_logger_free(UART_FileLogger* ptr) {
     furi_record_close(RECORD_STORAGE);
 
     free(ptr);
+}
+
+void uart_file_logger_set_context(UART_FileLogger* logger, void* context) {
+    logger->context = context;
+}
+
+void* uart_file_logger_get_context(UART_FileLogger* logger) {
+    return logger->context;
 }
 
 void uart_file_logger_set_on_filled_callback(

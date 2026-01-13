@@ -23,6 +23,9 @@ void uart_file_logger_set_on_filled_callback(
     UART_FileLogger* logger,
     void (*func)(UART_FileLogger*, UART_FileLoggerSyncPart));
 
+void uart_file_logger_set_context(UART_FileLogger* logger, void* context);
+void* uart_file_logger_get_context(UART_FileLogger* logger);
+
 void uart_file_logger_push(UART_FileLogger* logger, const void* buf, size_t sz);
 void uart_file_logger_flush(UART_FileLogger* logger, UART_FileLoggerSyncPart part);
 void uart_file_logger_flush_pending(UART_FileLogger* logger);

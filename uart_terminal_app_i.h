@@ -20,6 +20,14 @@
 #define UART_TERMINAL_TEXT_INPUT_STORE_SIZE (512)
 #define UART_CH                             (FuriHalSerialIdLpuart)
 
+typedef enum {
+    NO_ACTION = 0,
+    ACTION_CMD,
+    ACTION_INPUT_CMD,
+    ACTION_TERMINAL,
+    ACTION_INFO
+} ActionType;
+
 struct UART_TerminalApp {
     Gui* gui;
     ViewDispatcher* view_dispatcher;
@@ -39,14 +47,14 @@ struct UART_TerminalApp {
     int selected_menu_index;
     int selected_option_index[NUM_MENU_ITEMS];
     const char* selected_tx_string;
-    bool is_command;
+    ActionType action_type;
     bool is_custom_tx_string;
     bool focus_console_start;
-    bool show_stopscan_tip;
     bool show_time;
     bool console_at_line_start;
     bool log_to_file;
-    int BAUDRATE;
+    bool need_settings_sync;
+    uint32_t BAUDRATE;
     int TERMINAL_MODE; //1=AT mode, 0=other mode
 };
 

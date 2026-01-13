@@ -1,5 +1,111 @@
 #include "../uart_terminal_app_i.h"
 
+static void sync_baud_rate(UART_TerminalApp* app) {
+    if(0 == strncmp("75", app->selected_tx_string, strlen("75")) && app->BAUDRATE != 75) {
+        app->BAUDRATE = 75;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("110", app->selected_tx_string, strlen("110")) && app->BAUDRATE != 110) {
+        app->BAUDRATE = 110;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("150", app->selected_tx_string, strlen("150")) && app->BAUDRATE != 150) {
+        app->BAUDRATE = 150;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("300", app->selected_tx_string, strlen("300")) && app->BAUDRATE != 300) {
+        app->BAUDRATE = 300;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("600", app->selected_tx_string, strlen("600")) && app->BAUDRATE != 600) {
+        app->BAUDRATE = 600;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("1200", app->selected_tx_string, strlen("1200")) && app->BAUDRATE != 1200) {
+        app->BAUDRATE = 1200;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("1800", app->selected_tx_string, strlen("1800")) && app->BAUDRATE != 1800) {
+        app->BAUDRATE = 1800;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("2400", app->selected_tx_string, strlen("2400")) && app->BAUDRATE != 2400) {
+        app->BAUDRATE = 2400;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("4800", app->selected_tx_string, strlen("4800")) && app->BAUDRATE != 4800) {
+        app->BAUDRATE = 4800;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("7200", app->selected_tx_string, strlen("7200")) && app->BAUDRATE != 7200) {
+        app->BAUDRATE = 7200;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("9600", app->selected_tx_string, strlen("9600")) && app->BAUDRATE != 9600) {
+        app->BAUDRATE = 9600;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("14400", app->selected_tx_string, strlen("14400")) && app->BAUDRATE != 14400) {
+        app->BAUDRATE = 14400;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("19200", app->selected_tx_string, strlen("19200")) && app->BAUDRATE != 19200) {
+        app->BAUDRATE = 19200;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("38400", app->selected_tx_string, strlen("38400")) && app->BAUDRATE != 38400) {
+        app->BAUDRATE = 38400;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("56000", app->selected_tx_string, strlen("56000")) && app->BAUDRATE != 56000) {
+        app->BAUDRATE = 56000;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("57600", app->selected_tx_string, strlen("57600")) && app->BAUDRATE != 57600) {
+        app->BAUDRATE = 57600;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("76800", app->selected_tx_string, strlen("76800")) && app->BAUDRATE != 76800) {
+        app->BAUDRATE = 76800;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("115200", app->selected_tx_string, strlen("115200")) &&
+       app->BAUDRATE != 115200) {
+        app->BAUDRATE = 115200;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("128000", app->selected_tx_string, strlen("128000")) &&
+       app->BAUDRATE != 128000) {
+        app->BAUDRATE = 128000;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("230400", app->selected_tx_string, strlen("230400")) &&
+       app->BAUDRATE != 230400) {
+        app->BAUDRATE = 230400;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("250000", app->selected_tx_string, strlen("250000")) &&
+       app->BAUDRATE != 250000) {
+        app->BAUDRATE = 250000;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("256000", app->selected_tx_string, strlen("256000")) &&
+       app->BAUDRATE != 256000) {
+        app->BAUDRATE = 256000;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("460800", app->selected_tx_string, strlen("460800")) &&
+       app->BAUDRATE != 460800) {
+        app->BAUDRATE = 460800;
+        app->need_settings_sync = true;
+    }
+    if(0 == strncmp("921600", app->selected_tx_string, strlen("921600")) &&
+       app->BAUDRATE != 921600) {
+        app->BAUDRATE = 921600;
+        app->need_settings_sync = true;
+    }
+}
+
 void uart_terminal_console_output_handle_rx_data_cb(uint8_t* buf, size_t len, void* context) {
     furi_assert(context);
     UART_TerminalApp* app = context;
@@ -59,155 +165,18 @@ void uart_terminal_scene_console_output_on_enter(void* context) {
     }
 
     //Change baudrate ///////////////////////////////////////////////////////////////////////////
-    if(0 == strncmp("75", app->selected_tx_string, strlen("75")) && app->BAUDRATE != 75) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 75;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("110", app->selected_tx_string, strlen("110")) && app->BAUDRATE != 110) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 110;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("150", app->selected_tx_string, strlen("150")) && app->BAUDRATE != 150) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 150;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("300", app->selected_tx_string, strlen("300")) && app->BAUDRATE != 300) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 300;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("600", app->selected_tx_string, strlen("600")) && app->BAUDRATE != 600) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 600;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("1200", app->selected_tx_string, strlen("1200")) && app->BAUDRATE != 1200) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 1200;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("1800", app->selected_tx_string, strlen("1800")) && app->BAUDRATE != 1800) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 1800;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("2400", app->selected_tx_string, strlen("2400")) && app->BAUDRATE != 2400) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 2400;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("4800", app->selected_tx_string, strlen("4800")) && app->BAUDRATE != 4800) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 4800;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("7200", app->selected_tx_string, strlen("7200")) && app->BAUDRATE != 7200) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 7200;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("9600", app->selected_tx_string, strlen("9600")) && app->BAUDRATE != 9600) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 9600;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("14400", app->selected_tx_string, strlen("14400")) && app->BAUDRATE != 14400) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 14400;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("19200", app->selected_tx_string, strlen("19200")) && app->BAUDRATE != 19200) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 19200;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("38400", app->selected_tx_string, strlen("38400")) && app->BAUDRATE != 38400) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 38400;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("56000", app->selected_tx_string, strlen("56000")) && app->BAUDRATE != 56000) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 56000;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("57600", app->selected_tx_string, strlen("57600")) && app->BAUDRATE != 57600) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 57600;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("76800", app->selected_tx_string, strlen("76800")) && app->BAUDRATE != 76800) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 76800;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("115200", app->selected_tx_string, strlen("115200")) &&
-       app->BAUDRATE != 115200) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 115200;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("128000", app->selected_tx_string, strlen("128000")) &&
-       app->BAUDRATE != 128000) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 128000;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("230400", app->selected_tx_string, strlen("230400")) &&
-       app->BAUDRATE != 230400) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 230400;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("250000", app->selected_tx_string, strlen("250000")) &&
-       app->BAUDRATE != 250000) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 250000;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("256000", app->selected_tx_string, strlen("256000")) &&
-       app->BAUDRATE != 256000) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 256000;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("460800", app->selected_tx_string, strlen("460800")) &&
-       app->BAUDRATE != 460800) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 460800;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    if(0 == strncmp("921600", app->selected_tx_string, strlen("921600")) &&
-       app->BAUDRATE != 921600) {
-        uart_terminal_uart_free(app->uart);
-        app->BAUDRATE = 921600;
-        app->uart = uart_terminal_uart_init(app);
-    }
-    /////////////////////////////////////////////////////////////////////////////////////////////////////
+    sync_baud_rate(app);
+    /////////////////////////////////////////////////////////////////////////////////////////////
 
-    if(app->is_command) {
-        furi_string_reset(app->text_box_store);
-        app->text_box_store_strlen = 0;
-
-        if(0 == strncmp("help", app->selected_tx_string, strlen("help"))) {
-            const char* help_msg =
-                "UART terminal for Flipper\nby AlexixRugis\nBased on: cool4uma\n";
-            furi_string_cat_str(app->text_box_store, help_msg);
-            app->text_box_store_strlen += strlen(help_msg);
-        }
-
-        if(app->show_stopscan_tip) {
-            const char* help_msg = "Press BACK to return\n";
-            furi_string_cat_str(app->text_box_store, help_msg);
-            app->text_box_store_strlen += strlen(help_msg);
-        }
+    if(app->action_type == ACTION_INFO) {
+        const char* help_msg =
+            "UART terminal for Flipper\nby AlexixRugis\nBased on: cool4uma\nPress BACK to return\n";
+        text_box_set_text(app->text_box, help_msg);
+    } else {
+        text_box_set_text(app->text_box, furi_string_get_cstr(app->text_box_store));
     }
 
     // Set starting text - for "View Log", this will just be what was already in the text box store
-    text_box_set_text(app->text_box, furi_string_get_cstr(app->text_box_store));
 
     scene_manager_set_scene_state(app->scene_manager, UART_TerminalSceneConsoleOutput, 0);
     view_dispatcher_switch_to_view(app->view_dispatcher, UART_TerminalAppViewConsoleOutput);
@@ -219,7 +188,8 @@ void uart_terminal_scene_console_output_on_enter(void* context) {
         app->uart, uart_terminal_console_output_handle_rx_data_cb); // setup callback for rx thread
 
     // Send command with CR+LF or newline '\n'
-    if(app->is_command && app->selected_tx_string) {
+    if((app->action_type == ACTION_CMD || app->action_type == ACTION_INPUT_CMD) &&
+       app->selected_tx_string) {
         if(app->TERMINAL_MODE == 1) {
             uart_terminal_uart_tx(
                 app->uart, (uint8_t*)(app->selected_tx_string), strlen(app->selected_tx_string));
@@ -238,9 +208,17 @@ bool uart_terminal_scene_console_output_on_event(void* context, SceneManagerEven
     bool consumed = false;
 
     if(event.type == SceneManagerEventTypeCustom) {
-        text_box_set_text(app->text_box, furi_string_get_cstr(app->text_box_store));
+        if(event.event == UART_TerminalEventRefreshConsoleOutput) {
+            text_box_set_text(app->text_box, furi_string_get_cstr(app->text_box_store));
+        }
         consumed = true;
     } else if(event.type == SceneManagerEventTypeTick) {
+        if(app->need_settings_sync) {
+            view_dispatcher_send_custom_event(
+                app->view_dispatcher, UART_TerminalEventSyncSettings);
+            app->need_settings_sync = false;
+        }
+
         consumed = true;
     }
 

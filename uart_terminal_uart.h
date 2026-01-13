@@ -10,5 +10,7 @@ void uart_terminal_uart_set_handle_rx_data_cb(
     UART_TerminalUart* uart,
     void (*handle_rx_data_cb)(uint8_t* buf, size_t len, void* context));
 void uart_terminal_uart_tx(UART_TerminalUart* uart, uint8_t* data, size_t len);
+uint32_t uart_terminal_uart_get_br(UART_TerminalUart* uart);
+
 UART_TerminalUart* uart_terminal_uart_init(UART_TerminalApp* app);
 void uart_terminal_uart_free(UART_TerminalUart* uart);

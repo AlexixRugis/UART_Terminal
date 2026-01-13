@@ -3,9 +3,51 @@
 #include <furi.h>
 #include <furi_hal.h>
 
+static void
+    uart_terminal_app_logger_callback(UART_FileLogger* logger, UART_FileLoggerSyncPart part) {
+    UART_TerminalApp* app = (UART_TerminalApp*)uart_file_logger_get_context(logger);
+    furi_assert(app);
+
+    if(part == BUF_PART_FIRST_HALF) {
+        view_dispatcher_send_custom_event(app->view_dispatcher, UART_TerminalEventFlushFirstHalf);
+    } else if(part == BUF_PART_SECOND_HALF) {
+        view_dispatcher_send_custom_event(app->view_dispatcher, UART_TerminalEventFlushSecondHalf);
+    }
+}
+
+static void uart_terminal_app_sync_settings(UART_TerminalApp* app) {
+    // TODO: reopen port/create or delete logger
+
+    uint32_t cur_baudrate = uart_terminal_uart_get_br(app->uart);
+    if(app->BAUDRATE != cur_baudrate) {
+        uart_terminal_uart_free(app->uart);
+        app->uart = uart_terminal_uart_init(app);
+    }
+
+    if(app->log_to_file && !app->file_logger) {
+        app->file_logger = uart_file_logger_create();
+        uart_file_logger_set_context(app->file_logger, app);
+        uart_file_logger_set_on_filled_callback(
+            app->file_logger, uart_terminal_app_logger_callback);
+    } else if(!app->log_to_file && !app->file_logger) {
+        uart_file_logger_flush_pending(app->file_logger);
+        uart_file_logger_free(app->file_logger);
+        app->file_logger = NULL;
+    }
+}
+
 static bool uart_terminal_app_custom_event_callback(void* context, uint32_t event) {
     furi_assert(context);
     UART_TerminalApp* app = context;
+
+    if(event == UART_TerminalEventFlushFirstHalf) {
+        if(app->file_logger) uart_file_logger_flush(app->file_logger, BUF_PART_FIRST_HALF);
+    } else if(event == UART_TerminalEventFlushSecondHalf) {
+        if(app->file_logger) uart_file_logger_flush(app->file_logger, BUF_PART_SECOND_HALF);
+    } else if(event == UART_TerminalEventSyncSettings) {
+        uart_terminal_app_sync_settings(app);
+    }
+
     return scene_manager_handle_custom_event(app->scene_manager, event);
 }
 
@@ -64,6 +106,8 @@ UART_TerminalApp* uart_terminal_app_alloc() {
 
     scene_manager_next_scene(app->scene_manager, UART_TerminalSceneStart);
 
+    app->uart = uart_terminal_uart_init(app);
+
     return app;
 }
 
@@ -93,8 +137,6 @@ void uart_terminal_app_free(UART_TerminalApp* app) {
 int32_t uart_terminal_app(void* p) {
     UNUSED(p);
     UART_TerminalApp* uart_terminal_app = uart_terminal_app_alloc();
-
-    uart_terminal_app->uart = uart_terminal_uart_init(uart_terminal_app);
 
     view_dispatcher_run(uart_terminal_app->view_dispatcher);
 
