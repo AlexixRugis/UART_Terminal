@@ -37,6 +37,8 @@ struct UART_TerminalApp {
     FuriString* text_box_store;
     size_t text_box_store_strlen;
     TextBox* text_box;
+    bool is_in_console_view;
+
     UART_TextInput* text_input;
 
     VariableItemList* var_item_list;

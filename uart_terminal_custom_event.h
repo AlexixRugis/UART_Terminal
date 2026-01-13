@@ -5,6 +5,5 @@ typedef enum {
     UART_TerminalEventStartConsole,
     UART_TerminalEventStartKeyboard,
     UART_TerminalEventFlushFirstHalf,
-    UART_TerminalEventFlushSecondHalf,
-    UART_TerminalEventSyncSettings
+    UART_TerminalEventFlushSecondHalf
 } UART_TerminalCustomEvent;

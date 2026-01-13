@@ -3,37 +3,84 @@
 #include <furi.h>
 #include <furi_hal.h>
 
-static void
-    uart_terminal_app_logger_callback(UART_FileLogger* logger, UART_FileLoggerSyncPart part) {
-    UART_TerminalApp* app = (UART_TerminalApp*)uart_file_logger_get_context(logger);
-    furi_assert(app);
+static void uart_terminal_app_handle_rx_data_cb(uint8_t* buf, size_t len, void* context) {
+    furi_assert(context);
+    UART_TerminalApp* app = context;
 
-    if(part == BUF_PART_FIRST_HALF) {
-        view_dispatcher_send_custom_event(app->view_dispatcher, UART_TerminalEventFlushFirstHalf);
-    } else if(part == BUF_PART_SECOND_HALF) {
-        view_dispatcher_send_custom_event(app->view_dispatcher, UART_TerminalEventFlushSecondHalf);
+    // If text box store gets too big, then truncate it
+    app->text_box_store_strlen += len;
+    if(app->text_box_store_strlen >= UART_TERMINAL_TEXT_BOX_STORE_SIZE - 1) {
+        furi_string_right(app->text_box_store, app->text_box_store_strlen / 2);
+        app->text_box_store_strlen = furi_string_size(app->text_box_store) + len;
+    }
+
+    for(size_t i = 0; i < len; i++) {
+        char ch = buf[i];
+
+        if(app->console_at_line_start && app->show_time) {
+            // If text box store gets too big, then truncate it
+            app->text_box_store_strlen += 11;
+            if(app->text_box_store_strlen >= UART_TERMINAL_TEXT_BOX_STORE_SIZE - 1) {
+                furi_string_right(app->text_box_store, app->text_box_store_strlen / 2);
+                app->text_box_store_strlen = furi_string_size(app->text_box_store) + 11;
+            }
+
+            DateTime datetime;
+            furi_hal_rtc_get_datetime(&datetime);
+
+            furi_string_cat_printf(
+                app->text_box_store,
+                "%02u:%02u:%02u - ",
+                datetime.hour,
+                datetime.minute,
+                datetime.second);
+
+            app->console_at_line_start = false;
+        }
+
+        furi_string_push_back(app->text_box_store, ch);
+
+        if(ch == '\n') {
+            app->console_at_line_start = true;
+        }
+    }
+
+    if(app->is_in_console_view && app->action_type != ACTION_INFO) {
+        view_dispatcher_send_custom_event(
+            app->view_dispatcher, UART_TerminalEventRefreshConsoleOutput);
     }
 }
 
-static void uart_terminal_app_sync_settings(UART_TerminalApp* app) {
-    // TODO: reopen port/create or delete logger
+// static void
+//     uart_terminal_app_logger_callback(UART_FileLogger* logger, UART_FileLoggerSyncPart part) {
+//     UART_TerminalApp* app = (UART_TerminalApp*)uart_file_logger_get_context(logger);
+//     furi_assert(app);
 
+//     if(part == BUF_PART_FIRST_HALF) {
+//         view_dispatcher_send_custom_event(app->view_dispatcher, UART_TerminalEventFlushFirstHalf);
+//     } else if(part == BUF_PART_SECOND_HALF) {
+//         view_dispatcher_send_custom_event(app->view_dispatcher, UART_TerminalEventFlushSecondHalf);
+//     }
+// }
+
+static void uart_terminal_app_sync_settings(UART_TerminalApp* app) {
     uint32_t cur_baudrate = uart_terminal_uart_get_br(app->uart);
     if(app->BAUDRATE != cur_baudrate) {
         uart_terminal_uart_free(app->uart);
         app->uart = uart_terminal_uart_init(app);
+        uart_terminal_uart_set_handle_rx_data_cb(app->uart, uart_terminal_app_handle_rx_data_cb);
     }
 
-    if(app->log_to_file && !app->file_logger) {
-        app->file_logger = uart_file_logger_create();
-        uart_file_logger_set_context(app->file_logger, app);
-        uart_file_logger_set_on_filled_callback(
-            app->file_logger, uart_terminal_app_logger_callback);
-    } else if(!app->log_to_file && !app->file_logger) {
-        uart_file_logger_flush_pending(app->file_logger);
-        uart_file_logger_free(app->file_logger);
-        app->file_logger = NULL;
-    }
+    // if(app->log_to_file && !app->file_logger) {
+    //     app->file_logger = uart_file_logger_create();
+    //     uart_file_logger_set_context(app->file_logger, app);
+    //     uart_file_logger_set_on_filled_callback(
+    //         app->file_logger, uart_terminal_app_logger_callback);
+    // } else if(!app->log_to_file && !app->file_logger) {
+    //     uart_file_logger_flush_pending(app->file_logger);
+    //     uart_file_logger_free(app->file_logger);
+    //     app->file_logger = NULL;
+    // }
 }
 
 static bool uart_terminal_app_custom_event_callback(void* context, uint32_t event) {
@@ -44,8 +91,6 @@ static bool uart_terminal_app_custom_event_callback(void* context, uint32_t even
         if(app->file_logger) uart_file_logger_flush(app->file_logger, BUF_PART_FIRST_HALF);
     } else if(event == UART_TerminalEventFlushSecondHalf) {
         if(app->file_logger) uart_file_logger_flush(app->file_logger, BUF_PART_SECOND_HALF);
-    } else if(event == UART_TerminalEventSyncSettings) {
-        uart_terminal_app_sync_settings(app);
     }
 
     return scene_manager_handle_custom_event(app->scene_manager, event);
@@ -60,6 +105,12 @@ static bool uart_terminal_app_back_event_callback(void* context) {
 static void uart_terminal_app_tick_event_callback(void* context) {
     furi_assert(context);
     UART_TerminalApp* app = context;
+
+    if(app->need_settings_sync) {
+        uart_terminal_app_sync_settings(app);
+        app->need_settings_sync = false;
+    }
+
     scene_manager_handle_tick_event(app->scene_manager);
 }
 
@@ -70,6 +121,7 @@ UART_TerminalApp* uart_terminal_app_alloc() {
 
     app->view_dispatcher = view_dispatcher_alloc();
     app->scene_manager = scene_manager_alloc(&uart_terminal_scene_handlers, app);
+    app->need_settings_sync = false;
     view_dispatcher_enable_queue(app->view_dispatcher);
     view_dispatcher_set_event_callback_context(app->view_dispatcher, app);
 
@@ -96,7 +148,10 @@ UART_TerminalApp* uart_terminal_app_alloc() {
     view_dispatcher_add_view(
         app->view_dispatcher, UART_TerminalAppViewConsoleOutput, text_box_get_view(app->text_box));
     app->text_box_store = furi_string_alloc();
+    app->text_box_store_strlen = 0;
     furi_string_reserve(app->text_box_store, UART_TERMINAL_TEXT_BOX_STORE_SIZE);
+    app->is_in_console_view = false;
+    app->console_at_line_start = true;
 
     app->text_input = uart_text_input_alloc();
     view_dispatcher_add_view(
@@ -107,6 +162,7 @@ UART_TerminalApp* uart_terminal_app_alloc() {
     scene_manager_next_scene(app->scene_manager, UART_TerminalSceneStart);
 
     app->uart = uart_terminal_uart_init(app);
+    uart_terminal_uart_set_handle_rx_data_cb(app->uart, uart_terminal_app_handle_rx_data_cb);
 
     return app;
 }
