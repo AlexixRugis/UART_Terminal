@@ -3,6 +3,22 @@
 #include <furi.h>
 #include <furi_hal.h>
 
+static void
+    uart_terminal_app_make_time_str(char* buf, uint8_t hour, uint8_t minute, uint8_t second) {
+    buf[0] = '0' + hour / 10;
+    buf[1] = '0' + hour % 10;
+    buf[2] = ':';
+    buf[3] = '0' + minute / 10;
+    buf[4] = '0' + minute % 10;
+    buf[5] = ':';
+    buf[6] = '0' + second / 10;
+    buf[7] = '0' + second % 10;
+    buf[8] = ' ';
+    buf[9] = '-';
+    buf[10] = ' ';
+    buf[11] = '\0';
+}
+
 static void uart_terminal_app_handle_rx_data_cb(uint8_t* buf, size_t len, void* context) {
     furi_assert(context);
     UART_TerminalApp* app = context;
@@ -32,17 +48,24 @@ static void uart_terminal_app_handle_rx_data_cb(uint8_t* buf, size_t len, void* 
             DateTime datetime;
             furi_hal_rtc_get_datetime(&datetime);
 
-            furi_string_cat_printf(
-                app->text_box_store,
-                "%02u:%02u:%02u - ",
-                datetime.hour,
-                datetime.minute,
-                datetime.second);
+            char time_buf[12];
+            uart_terminal_app_make_time_str(
+                time_buf, datetime.hour, datetime.minute, datetime.second);
+
+            furi_string_cat_str(app->text_box_store, time_buf);
+
+            if(app->log_to_file && app->file_logger) {
+                uart_file_logger_push(app->file_logger, time_buf, 11);
+            }
 
             app->console_at_line_start = false;
         }
 
         furi_string_push_back(app->text_box_store, ch);
+
+        if(app->log_to_file && app->file_logger) {
+            uart_file_logger_push(app->file_logger, &ch, 1);
+        }
 
         if(ch == '\n') {
             app->console_at_line_start = true;
@@ -69,7 +92,8 @@ static void
 
 static void uart_terminal_app_sync_settings(UART_TerminalApp* app) {
     uint32_t cur_baudrate = uart_terminal_uart_get_br(app->uart);
-    if(app->BAUDRATE != cur_baudrate) {
+    FuriHalSerialId cur_serial_id = uart_terminal_uart_get_serial_id(app->uart);
+    if(app->BAUDRATE != cur_baudrate || app->serial_id != cur_serial_id) {
         uart_terminal_uart_free(app->uart);
         app->uart = uart_terminal_uart_init(app);
         uart_terminal_uart_set_handle_rx_data_cb(app->uart, uart_terminal_app_handle_rx_data_cb);
@@ -165,6 +189,8 @@ UART_TerminalApp* uart_terminal_app_alloc() {
 
     scene_manager_next_scene(app->scene_manager, UART_TerminalSceneStart);
 
+    app->BAUDRATE = 115200;
+    app->serial_id = FuriHalSerialIdLpuart;
     app->uart = uart_terminal_uart_init(app);
     uart_terminal_uart_set_handle_rx_data_cb(app->uart, uart_terminal_app_handle_rx_data_cb);
 

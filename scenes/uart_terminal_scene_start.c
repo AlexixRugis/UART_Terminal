@@ -60,6 +60,14 @@ static void uart_terminal_scene_start_fetch_settings(UART_TerminalApp* app) {
         app->need_settings_sync = true;
     }
 
+    uint32_t serial_id_selected_option_index = app->selected_option_index[1];
+    FuriHalSerialId new_serial_id = serial_id_selected_option_index == 0 ? FuriHalSerialIdUsart :
+                                                                           FuriHalSerialIdLpuart;
+    if(app->serial_id != new_serial_id) {
+        app->serial_id = new_serial_id;
+        app->need_settings_sync = true;
+    }
+
     bool new_show_time = app->selected_option_index[3] > 0;
     app->show_time = new_show_time;
 

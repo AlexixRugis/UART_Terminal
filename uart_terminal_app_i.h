@@ -57,6 +57,7 @@ struct UART_TerminalApp {
     bool log_to_file;
     bool need_settings_sync;
     uint32_t BAUDRATE;
+    FuriHalSerialId serial_id;
     int TERMINAL_MODE; //1=AT mode, 0=other mode
 };
 

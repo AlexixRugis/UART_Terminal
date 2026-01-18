@@ -13,6 +13,7 @@ struct UART_TerminalUart {
     FuriStreamBuffer* rx_stream;
     uint8_t rx_buf[RX_BUF_SIZE + 1];
     uint32_t baudrate;
+    FuriHalSerialId serial_id;
     void (*handle_rx_data_cb)(uint8_t* buf, size_t len, void* context);
 };
 
@@ -73,6 +74,10 @@ uint32_t uart_terminal_uart_get_br(UART_TerminalUart* uart) {
     return uart->baudrate;
 }
 
+FuriHalSerialId uart_terminal_uart_get_serial_id(UART_TerminalUart* uart) {
+    return uart->serial_id;
+}
+
 UART_TerminalUart* uart_terminal_uart_init(UART_TerminalApp* app) {
     UART_TerminalUart* uart = malloc(sizeof(UART_TerminalUart));
     uart->app = app;
@@ -90,11 +95,12 @@ UART_TerminalUart* uart_terminal_uart_init(UART_TerminalApp* app) {
         app->BAUDRATE = 115200;
     }
 
-    uart->handle = furi_hal_serial_control_acquire(UART_CH);
+    uart->handle = furi_hal_serial_control_acquire(app->serial_id);
     furi_assert(uart->handle != 0);
 
     furi_hal_serial_init(uart->handle, app->BAUDRATE);
     uart->baudrate = app->BAUDRATE;
+    uart->serial_id = app->serial_id;
     furi_hal_serial_async_rx_start(
         uart->handle, uart_terminal_uart_rx_callback, (void*)uart, false);
 
